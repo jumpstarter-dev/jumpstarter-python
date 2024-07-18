@@ -102,8 +102,7 @@ class Driver(
                 jumpstarter_pb2.DriverInstanceReport(
                     uuid=str(uuid),
                     parent_uuid=str(parent_uuid) if parent_uuid else None,
-                    labels=instance.labels
-                    | {
+                    labels=instance.labels | {
                         "jumpstarter.dev/client_module": instance.client_module(),
                         "jumpstarter.dev/client_class": instance.client_class(),
                     },

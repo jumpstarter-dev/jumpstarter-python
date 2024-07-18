@@ -41,8 +41,7 @@ async def shell_impl():
             stdin=sys.stdin,
             stdout=sys.stdout,
             stderr=sys.stderr,
-            env=os.environ
-            | {
+            env=os.environ | {
                 "JUMPSTARTER_HOST": f"unix://{socketpath}",
             },
         ) as process:

@@ -1,4 +1,4 @@
-name: "Testing"
+name: "Linting"
 on:
   workflow_dispatch:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
   pull-requests: read
 jobs:
-  unit-test:
+  pep8:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,5 +33,5 @@ jobs:
       - name: Install the project dependencies
         run: poetry install
 
-      - name: Run the automated unit-test
-        run: poetry run pytest -v
+      - name: Run flake8
+        run: poetry run flake8 --show-source

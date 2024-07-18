@@ -24,7 +24,8 @@ class NetworkInterface(metaclass=ABCMeta):
 
     @abstractmethod
     @asynccontextmanager
-    async def connect(self): ...
+    async def connect(self):
+        ...
 
 
 class NetworkClient(NetworkInterface, DriverClient):

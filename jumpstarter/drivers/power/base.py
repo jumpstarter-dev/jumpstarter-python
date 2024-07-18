@@ -28,13 +28,16 @@ class PowerInterface(metaclass=ABCMeta):
         return "PowerClient"
 
     @abstractmethod
-    async def on(self) -> str: ...
+    async def on(self) -> str:
+        ...
 
     @abstractmethod
-    async def off(self) -> str: ...
+    async def off(self) -> str:
+        ...
 
     @abstractmethod
-    async def read(self) -> AsyncGenerator[PowerReading, None]: ...
+    async def read(self) -> AsyncGenerator[PowerReading, None]:
+        ...
 
 
 class PowerClient(PowerInterface, DriverClient):
