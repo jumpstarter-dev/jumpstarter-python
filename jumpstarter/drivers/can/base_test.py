@@ -9,19 +9,20 @@ from tempfile import TemporaryDirectory
 import anyio
 import can
 import pytest
-from can.interfaces.udp_multicast import UdpMulticastBus
+from can.interfaces.udp_multicast.utils import pack_message, unpack_message
 
 from jumpstarter.common.utils import serve
 from jumpstarter.drivers.can import UdpCan
 
 
 def test_udp_can():
-    # sender = can.Bus(interface="virtual")
-    with serve(UdpCan(name="can", host="127.0.0.1", port=8008, interface="virtual")) as client:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.bind(("127.0.0.1", 8008))
+    with can.Bus(channel="test", interface="virtual") as sender:
+        with serve(UdpCan(name="can", host="127.0.0.1", port=8008, interface="virtual", channel="test")) as client:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.bind(("127.0.0.1", 8008))
 
-            with client.connect() as stream:
-                assert True
-                # stream.send(b"hello")
-                # assert s.recv(5) == b"hello"
+                with client.connect() as stream:
+                    # stream.send(pack_message(can.Message(arbitration_id=0)))
+                    sender.send(can.Message(arbitration_id=0))
+                    assert True
+                    # assert len(s.recv(5)) != 0
