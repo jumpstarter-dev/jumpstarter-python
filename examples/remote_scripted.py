@@ -10,7 +10,7 @@ from jumpstarter.common.utils import lease
 def monitor_power(client):
     try:
         for reading in client.power.read():
-            click.secho(f"{reading}", fg="red")
+            click.secho(f"{reading}", fg="green")
     except Exception:
         pass
 
@@ -20,12 +20,6 @@ with lease(MetadataFilter(name="dutlink")) as client:
     Thread(target=monitor_power, args=[client]).start()
     with client.console.expect() as expect:
         expect.logfile = sys.stdout.buffer
-
-        expect.send("\x02" * 5)
-
-        click.secho("Entering DUT console", fg="red")
-        expect.send("console\r\n")
-        expect.expect("Entering console mode")
 
         client.power.off()
 
@@ -52,8 +46,5 @@ with lease(MetadataFilter(name="dutlink")) as client:
         expect.expect("NixOS Stage 1")
 
         click.secho("Reached initrd", fg="red")
-
-        expect.send("\x02" * 5)
-        expect.expect("Exiting console mode")
 
         client.power.off()
