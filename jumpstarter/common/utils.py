@@ -45,10 +45,10 @@ def environment():
 
 
 @contextmanager
-def lease(controller, metadata_filter):
+def lease(metadata_filter):
     with start_blocking_portal() as portal:
         with LeaseRequest(
-            channel=portal.call(insecure_channel, controller),
+            channel=portal.call(insecure_channel, "localhost:8083"),
             metadata_filter=metadata_filter,
             portal=portal,
         ) as lease:
