@@ -9,8 +9,10 @@ from anyio import create_task_group, sleep_forever
 from anyio.streams.stapled import StapledObjectStream
 from google.protobuf import json_format, struct_pb2
 from grpc.aio import Channel
+from opendal import AsyncOperator
 
 from jumpstarter.common import Metadata
+from jumpstarter.common.opendal import AsyncFileStream
 from jumpstarter.common.streams import (
     create_memory_stream,
     forward_client_stream,
@@ -106,3 +108,13 @@ class AsyncDriverClient(
                 {"kind": "resource", "uuid": str(self.uuid)}.items(),
             ):
                 yield (await rx.receive()).decode()
+
+    @asynccontextmanager
+    async def file_async(
+        self,
+        operator: AsyncOperator,
+        path: str,
+    ):
+        file = await operator.open(path, "rb")
+        async with self.resource_async(AsyncFileStream(file=file)) as uuid:
+            yield uuid
