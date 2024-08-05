@@ -1,3 +1,4 @@
+import os
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -32,3 +33,12 @@ def serve(root_device):
                 yield portal.call(client_from_channel, channel, portal)
 
             portal.call(server.stop, None)
+
+
+@contextmanager
+def environment():
+    host = os.environ.get("JUMPSTARTER_HOST")
+    with start_blocking_portal() as portal:
+        channel = portal.call(insecure_channel, host)
+        client = portal.call(client_from_channel, channel, portal)
+        yield client

@@ -36,7 +36,7 @@ with serve(instance) as client:
         client.power.off()
 
         click.secho("Writing system image", fg="red")
-        client.storage.write_local_file("/tmp/sdcard.img")
+        client.storage.write_local_file("/home/nickcao/Downloads/sdcard.img")
         click.secho("Written system image", fg="red")
 
         client.storage.dut()
