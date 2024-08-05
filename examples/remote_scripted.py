@@ -15,7 +15,7 @@ def monitor_power(client):
         pass
 
 
-with lease(MetadataFilter(name="dutlink")) as client:
+with lease("host.containers.internal:8083", MetadataFilter(name="dutlink")) as client:
     click.secho("Connected to Dutlink", fg="red")
     Thread(target=monitor_power, args=[client]).start()
     with client.console.expect() as expect:
