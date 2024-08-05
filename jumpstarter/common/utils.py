@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 import grpc
 from anyio.from_thread import start_blocking_portal
 
-from jumpstarter.client import client_from_channel
+from jumpstarter.client import LeaseRequest, client_from_channel
 from jumpstarter.common.grpc import insecure_channel
 from jumpstarter.exporter import Session
 
@@ -42,3 +42,15 @@ def environment():
         channel = portal.call(insecure_channel, host)
         client = portal.call(client_from_channel, channel, portal)
         yield client
+
+
+@contextmanager
+def lease(metadata_filter):
+    with start_blocking_portal() as portal:
+        with LeaseRequest(
+            channel=portal.call(insecure_channel, "localhost:8083"),
+            metadata_filter=metadata_filter,
+            portal=portal,
+        ) as lease:
+            with lease.connect() as client:
+                yield client

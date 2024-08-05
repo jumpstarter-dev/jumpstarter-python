@@ -4,7 +4,7 @@ import anyio
 import click
 import grpc
 
-from jumpstarter.drivers.power import MockPower
+from jumpstarter.drivers.dutlink.base import Dutlink
 from jumpstarter.exporter import Exporter
 from jumpstarter.v1 import jumpstarter_pb2_grpc
 
@@ -22,8 +22,12 @@ async def exporter_impl():
         async with Exporter(
             controller=controller,
             uuid=uuid,
-            name="exporter",
-            device_factory=lambda: MockPower(name="power"),
+            name="dutlink",
+            device_factory=lambda: Dutlink(
+                name="dutlink",
+                serial="c415a913",
+                storage_device="/dev/disk/by-id/usb-SanDisk_Extreme_Pro_52A456790D93-0:0",
+            ),
         ) as e:
             click.echo(f"Exporter {uuid} started")
             await e.serve()

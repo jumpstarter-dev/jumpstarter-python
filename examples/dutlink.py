@@ -3,14 +3,8 @@ from threading import Thread
 
 import click
 
-from jumpstarter.common.utils import serve
-from jumpstarter.drivers.dutlink.base import Dutlink
-
-instance = Dutlink(
-    name="dutlink",
-    serial="c415a913",
-    storage_device="/dev/disk/by-id/usb-SanDisk_Extreme_Pro_52A456790D93-0:0",
-)
+from jumpstarter.common import MetadataFilter
+from jumpstarter.common.utils import lease
 
 
 def monitor_power(client):
@@ -21,7 +15,7 @@ def monitor_power(client):
         pass
 
 
-with serve(instance) as client:
+with lease(MetadataFilter(name="dutlink")) as client:
     click.secho("Connected to Dutlink", fg="red")
     Thread(target=monitor_power, args=[client]).start()
     with client.console.expect() as expect:
