@@ -2,6 +2,7 @@ import sys
 from threading import Thread
 
 import click
+from opendal import Operator
 
 from jumpstarter.common import MetadataFilter
 from jumpstarter.common.utils import lease
@@ -24,7 +25,8 @@ with lease(MetadataFilter(name="dutlink")) as client:
         client.power.off()
 
         click.secho("Writing system image", fg="red")
-        client.storage.write_local_file("/home/nickcao/Downloads/sdcard.img")
+
+        client.storage.write_file(Operator("http", endpoint="http://127.0.0.1:8080"), "/sdcard.img")
         click.secho("Written system image", fg="red")
 
         client.storage.dut()
