@@ -39,8 +39,10 @@ async def decapsulate_stream(tx, rx, tg):
                 pass
             case _:
                 raise
-    finally:
-        tg.cancel_scope.cancel()
+    except Exception:
+        pass
+    # finally:
+    #     tg.cancel_scope.cancel()
 
 
 async def forward_server_stream(request_iterator, stream):
