@@ -1,15 +1,10 @@
-# ruff: noqa: E402
 from concurrent.futures import ThreadPoolExecutor
-
-import pytest
-
-pytest.importorskip("gpiozero")
 
 from gpiozero import Device
 from gpiozero.pins.mock import MockFactory
+from jumpstarter_driver_raspberrypi.gpio.digital import DigitalInput, DigitalOutput
 
 from jumpstarter.common.utils import serve
-from jumpstarter.drivers.rpi.gpio.digital import DigitalInput, DigitalOutput
 
 Device.pin_factory = MockFactory()
 
