@@ -1,4 +1,4 @@
-name: documentation
+name: "Build Docs"
 
 on:
   # Runs on pushes targeting the default branch
