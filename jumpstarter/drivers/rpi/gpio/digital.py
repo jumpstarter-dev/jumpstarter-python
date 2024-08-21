@@ -2,7 +2,7 @@ from dataclasses import InitVar, dataclass, field
 
 from gpiozero import DigitalInputDevice, DigitalOutputDevice
 
-from jumpstarter.drivers import Driver, export
+from jumpstarter.driver import Driver, export
 
 
 @dataclass(kw_only=True)

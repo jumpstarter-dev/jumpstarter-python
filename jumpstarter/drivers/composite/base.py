@@ -3,7 +3,8 @@ from itertools import chain
 
 import click
 
-from jumpstarter.drivers import Driver, DriverClient
+from jumpstarter.client import DriverClient
+from jumpstarter.driver import Driver
 
 
 class CompositeInterface:

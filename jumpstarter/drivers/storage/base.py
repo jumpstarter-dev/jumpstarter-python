@@ -5,8 +5,9 @@ import click
 from anyio.streams.file import FileWriteStream
 from opendal import Operator
 
-from jumpstarter.drivers import Driver, DriverClient, export
-from jumpstarter.drivers.mixins import ResourceMixin
+from jumpstarter.client import DriverClient
+from jumpstarter.client.mixins import ResourceMixin
+from jumpstarter.driver import Driver, export
 
 
 class StorageMuxInterface(metaclass=ABCMeta):

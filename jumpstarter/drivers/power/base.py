@@ -4,7 +4,8 @@ from collections.abc import AsyncGenerator, Generator
 import click
 from pydantic import BaseModel
 
-from jumpstarter.drivers import Driver, DriverClient, export
+from jumpstarter.client import DriverClient
+from jumpstarter.driver import Driver, export
 
 
 class PowerReading(BaseModel):

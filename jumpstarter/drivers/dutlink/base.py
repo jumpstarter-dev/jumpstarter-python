@@ -9,7 +9,7 @@ import usb.util
 from anyio import fail_after, sleep
 from anyio.streams.file import FileWriteStream
 
-from jumpstarter.drivers import Driver, export
+from jumpstarter.driver import Driver, export
 from jumpstarter.drivers.composite import CompositeInterface
 from jumpstarter.drivers.power import PowerInterface, PowerReading
 from jumpstarter.drivers.serial.pyserial import PySerial

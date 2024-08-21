@@ -1,5 +1,5 @@
-from jumpstarter.drivers import DriverClient
-from jumpstarter.drivers.mixins import ExpectMixin
+from jumpstarter.client import DriverClient
+from jumpstarter.client.mixins import ExpectMixin
 
 
 class PySerialClient(DriverClient, ExpectMixin):
