@@ -1,26 +1,15 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 
-import click
-from pydantic import BaseModel
-
-from jumpstarter.client import DriverClient
 from jumpstarter.driver import Driver, export
 
-
-class PowerReading(BaseModel):
-    voltage: float
-    current: float
-
-    @property
-    def apparent_power(self):
-        return self.voltage * self.current
+from .common import PowerReading
 
 
 class PowerInterface(metaclass=ABCMeta):
     @classmethod
     def client(cls) -> str:
-        return "jumpstarter.drivers.power.PowerClient"
+        return "jumpstarter.drivers.power.client.PowerClient"
 
     @abstractmethod
     async def on(self) -> str: ...
@@ -30,36 +19,6 @@ class PowerInterface(metaclass=ABCMeta):
 
     @abstractmethod
     async def read(self) -> AsyncGenerator[PowerReading, None]: ...
-
-
-class PowerClient(DriverClient):
-    def on(self) -> str:
-        return self.call("on")
-
-    def off(self) -> str:
-        return self.call("off")
-
-    def read(self) -> Generator[PowerReading, None, None]:
-        for v in self.streamingcall("read"):
-            yield PowerReading.model_validate(v, strict=True)
-
-    def cli(self):
-        @click.group
-        def base():
-            """Generic power"""
-            pass
-
-        @base.command()
-        def on():
-            """Power on"""
-            click.echo(self.on())
-
-        @base.command()
-        def off():
-            """Power off"""
-            click.echo(self.off())
-
-        return base
 
 
 class MockPower(PowerInterface, Driver):
