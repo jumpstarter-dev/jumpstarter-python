@@ -1,24 +1,8 @@
 from dataclasses import dataclass, field
-from itertools import chain
 
 import click
 
 from jumpstarter.client import DriverClient
-from jumpstarter.driver import Driver
-
-
-class CompositeInterface:
-    @classmethod
-    def client(cls) -> str:
-        return "jumpstarter.drivers.composite.CompositeClient"
-
-
-@dataclass(kw_only=True)
-class Composite(CompositeInterface, Driver):
-    children: list[Driver]
-
-    def items(self, parent=None):
-        return super().items(parent) + list(chain(*[child.items(self) for child in self.children]))
 
 
 @dataclass(kw_only=True)

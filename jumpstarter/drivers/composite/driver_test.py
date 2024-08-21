@@ -1,5 +1,5 @@
 from jumpstarter.common.utils import serve
-from jumpstarter.drivers.composite import Composite
+from jumpstarter.drivers.composite.driver import Composite
 from jumpstarter.drivers.power.driver import MockPower
 
 
