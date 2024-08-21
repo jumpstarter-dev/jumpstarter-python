@@ -10,7 +10,7 @@ from anyio import fail_after, sleep
 from anyio.streams.file import FileWriteStream
 
 from jumpstarter.driver import Driver, export
-from jumpstarter.drivers.composite.base import CompositeInterface
+from jumpstarter.drivers.composite.driver import CompositeInterface
 from jumpstarter.drivers.power.driver import PowerInterface, PowerReading
 from jumpstarter.drivers.pyserial.driver import PySerial
 from jumpstarter.drivers.storage.driver import StorageMuxInterface
