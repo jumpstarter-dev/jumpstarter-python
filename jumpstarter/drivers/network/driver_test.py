@@ -10,7 +10,6 @@ import anyio
 import pytest
 
 from jumpstarter.common.utils import serve
-
 from jumpstarter.drivers.network.driver import EchoNetwork, TcpNetwork, UdpNetwork, UnixNetwork
 
 

@@ -38,7 +38,7 @@ class PySerial(Driver):
 
     @classmethod
     def client(cls) -> str:
-        return "jumpstarter.drivers.serial.client.PySerialClient"
+        return "jumpstarter.drivers.pyserial.client.PySerialClient"
 
     @exportstream
     @asynccontextmanager
