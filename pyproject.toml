@@ -23,17 +23,6 @@ dependencies = [
   "pydantic~=2.8.2",
 ]
 
-[project.scripts]
-jmp = "jumpstarter.__main__:main"
-j = "jumpstarter.cli.j:main"
-
-[tool.uv.sources]
-jumpstarter-protocol = { git = "https://github.com/jumpstarter-dev/jumpstarter-protocol.git", subdirectory = "python" }
-
-[project.optional-dependencies]
-rpi = ["gpiozero~=2.0.1"]
-dutlink = ["libusb~=1.0.27", "pyudev~=0.24.3"]
-
 [tool.uv]
 dev-dependencies = [
   "pytest>=8.2.2",
@@ -48,6 +37,17 @@ dev-dependencies = [
   "esbonio~=0.16.4",
   "sphinx-autobuild~=2024.4.16",
 ]
+
+[tool.uv.sources]
+jumpstarter-protocol = { git = "https://github.com/jumpstarter-dev/jumpstarter-protocol.git", subdirectory = "python" }
+
+[project.optional-dependencies]
+rpi = ["gpiozero~=2.0.1"]
+dutlink = ["libusb~=1.0.27", "pyudev~=0.24.3"]
+
+[project.scripts]
+jmp = "jumpstarter.__main__:main"
+j = "jumpstarter.cli.j:main"
 
 [build-system]
 requires = ["hatchling"]

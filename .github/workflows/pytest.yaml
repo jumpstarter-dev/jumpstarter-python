@@ -23,23 +23,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2
+      - name: Install uv
+        uses: yezz123/setup-uv@v4
 
       - uses: actions/cache@v3
         name: Define a cache for the virtual environment based on the dependencies lock file
         with:
           path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
+          key: venv-${{ hashFiles('uv.lock') }}
 
-      - name: Fix lock?
-        run: poetry lock
-        
       - name: Install the project dependencies
-        run: poetry install --all-extras
+        run: uv sync --all-extras
 
       - name: Run the automated tests (for example)
-        run: poetry run pytest
+        run: uv run pytest
 
   # https://github.com/orgs/community/discussions/26822
   pytest:

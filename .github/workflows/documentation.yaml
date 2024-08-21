@@ -35,29 +35,26 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2
+      - name: Install uv
+        uses: yezz123/setup-uv@v4
 
       - uses: actions/cache@v3
         name: Define a cache for the virtual environment based on the dependencies lock file
         with:
           path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
-
-      - name: Fix lock?
-        run: poetry lock
+          key: venv-${{ hashFiles('uv.lock') }}
 
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
 
       - name: Install the project dependencies
-        run: poetry install --all-extras
+        run: uv sync --all-extras
 
       - name: Build the documentation
-        run: poetry run make docs
+        run: uv run make docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
