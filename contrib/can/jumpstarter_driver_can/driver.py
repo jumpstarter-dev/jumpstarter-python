@@ -34,5 +34,9 @@ class Can(Driver):
         self.bus.send(can.Message(**CanMessage.model_validate(msg).__dict__), timeout)
 
     @export
+    def set_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
+        self.bus.set_filters(filters)
+
+    @export
     def flush_tx_buffer(self) -> None:
         self.bus.flush_tx_buffer()

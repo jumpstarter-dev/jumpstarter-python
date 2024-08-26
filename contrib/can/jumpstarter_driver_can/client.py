@@ -13,7 +13,7 @@ from .common import CanMessage, CanResult
 class CanClient(DriverClient, can.BusABC):
     def __post_init__(self):
         self._periodic_tasks: List[_SelfRemovingCyclicTask] = []
-        self.set_filters(None)
+        self._filters = None
         self._is_shutdown: bool = False
 
         super().__post_init__()
@@ -27,8 +27,9 @@ class CanClient(DriverClient, can.BusABC):
     def send(self, msg: can.Message, timeout: Optional[float] = None) -> None:
         self.call("send", CanMessage.model_validate(msg, from_attributes=True), timeout)
 
-    def _apply_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
-        pass
+    def set_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
+        self._filters = filters or None
+        self.call("set_filters", filters)
 
     def flush_tx_buffer(self) -> None:
         self.call("flush_tx_buffer")
