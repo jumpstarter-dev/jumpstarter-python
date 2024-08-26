@@ -2,26 +2,25 @@ from itertools import islice
 from threading import Semaphore
 
 import can
-from can.interfaces.udp_multicast import UdpMulticastBus
 
 from jumpstarter.common.utils import serve
 from jumpstarter_driver_can.driver import Can
 
 
-def test_client_can():
+def test_client_can(request):
     with (
-        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client1,
-        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client2,
+        serve(Can(channel=request.node.name, interface="virtual")) as client1,
+        serve(Can(channel=request.node.name, interface="virtual")) as client2,
     ):
         client1.send(can.Message(data=b"hello"))
 
         assert client2.recv().data == b"hello"
 
 
-def test_client_can_iterator():
+def test_client_can_iterator(request):
     with (
-        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client1,
-        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client2,
+        serve(Can(channel=request.node.name, interface="virtual")) as client1,
+        serve(Can(channel=request.node.name, interface="virtual")) as client2,
     ):
         client1.send(can.Message(data=b"a"))
         client1.send(can.Message(data=b"b"))
@@ -30,10 +29,10 @@ def test_client_can_iterator():
         assert [msg.data for msg in islice(client2, 3)] == [b"a", b"b", b"c"]
 
 
-def test_client_can_filter():
+def test_client_can_filter(request):
     with (
-        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client1,
-        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client2,
+        serve(Can(channel=request.node.name, interface="virtual")) as client1,
+        serve(Can(channel=request.node.name, interface="virtual")) as client2,
     ):
         client2.set_filters([{"can_id": 0x1, "can_mask": 0x1, "extended": True}])
 
@@ -44,10 +43,10 @@ def test_client_can_filter():
         assert client2.recv().data == b"b"
 
 
-def test_client_can_notifier():
+def test_client_can_notifier(request):
     with (
-        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client1,
-        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client2,
+        serve(Can(channel=request.node.name, interface="virtual")) as client1,
+        serve(Can(channel=request.node.name, interface="virtual")) as client2,
     ):
         sem = Semaphore(0)
 
@@ -60,4 +59,21 @@ def test_client_can_notifier():
         client1.send(can.Message(data=b"hello"))
 
         sem.acquire()
+        notifier.stop()
+
+
+def test_client_can_redirect(request):
+    with (
+        serve(Can(channel=request.node.name, interface="virtual")) as client1,
+        serve(Can(channel=request.node.name, interface="virtual")) as client2,
+    ):
+        bus3 = can.interface.Bus(request.node.name + "_inner", interface="virtual")
+        bus4 = can.interface.Bus(request.node.name + "_inner", interface="virtual")
+
+        notifier = can.Notifier(client2, [can.RedirectReader(bus3)])
+
+        client1.send(can.Message(data=b"hello"))
+
+        assert bus4.recv().data == b"hello"
+
         notifier.stop()
