@@ -87,3 +87,31 @@ def test_client_can_redirect(request):
         notifier.stop()
 
         del client1, client2, notifier
+
+
+def test_client_can_send_periodic_software(request):
+    with (
+        serve(Can(channel=request.node.name, interface="virtual")) as client1,
+        serve(Can(channel=request.node.name, interface="virtual")) as client2,
+    ):
+
+        def modifier_callback(msg):
+            msg.arbitration_id = 1
+
+        client1.send_periodic(
+            msgs=[can.Message(data=b"a"), can.Message(data=b"b")],
+            period=0.1,
+            duration=1,
+            store_task=True,
+            modifier_callback=modifier_callback,
+        )
+
+        assert [(msg.arbitration_id, msg.data) for msg in islice(client2, 4)] == [
+            (1, b"a"),
+            (1, b"b"),
+            (1, b"a"),
+            (1, b"b"),
+        ]
+
+        client1.shutdown()
+        client2.shutdown()

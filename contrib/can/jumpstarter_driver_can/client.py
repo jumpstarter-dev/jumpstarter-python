@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 import can
 from can.bus import _SelfRemovingCyclicTask
@@ -29,6 +29,19 @@ class CanClient(DriverClient, can.BusABC):
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def send(self, msg: can.Message, timeout: Optional[float] = None) -> None:
         self.call("send", CanMessage.model_validate(msg, from_attributes=True), timeout)
+
+    @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
+    def _send_periodic_internal(
+        self,
+        msgs: Union[Sequence[can.Message], can.Message],
+        period: float,
+        duration: Optional[float] = None,
+        modifier_callback: Optional[Callable[[can.Message], None]] = None,
+    ) -> can.broadcastmanager.CyclicSendTaskABC:
+        if modifier_callback:
+            return super()._send_periodic_internal(msgs, period, duration, modifier_callback)
+        else:
+            return self.call("_send_periodic_internal", msgs, period, duration)
 
     @validate_call(validate_return=True)
     def _apply_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
