@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from google.protobuf import json_format, struct_pb2
 from grpc.aio import Channel
+from pydantic import BaseModel
 
 from jumpstarter.common import Metadata
 from jumpstarter.common.resources import ResourceMetadata
@@ -23,6 +24,13 @@ from jumpstarter.streams import (
     forward_stream,
 )
 from jumpstarter.v1 import jumpstarter_pb2, jumpstarter_pb2_grpc, router_pb2_grpc
+
+
+def encode_value(v):
+    return json_format.ParseDict(
+        v.model_dump(mode="json") if isinstance(v, BaseModel) else v,
+        struct_pb2.Value(),
+    )
 
 
 @dataclass(kw_only=True)
@@ -50,7 +58,7 @@ class AsyncDriverClient(
         request = jumpstarter_pb2.DriverCallRequest(
             uuid=str(self.uuid),
             method=method,
-            args=[json_format.ParseDict(arg, struct_pb2.Value()) for arg in args],
+            args=[encode_value(arg) for arg in args],
         )
 
         response = await self.DriverCall(request)
@@ -63,7 +71,7 @@ class AsyncDriverClient(
         request = jumpstarter_pb2.StreamingDriverCallRequest(
             uuid=str(self.uuid),
             method=method,
-            args=[json_format.ParseDict(arg, struct_pb2.Value()) for arg in args],
+            args=[encode_value(arg) for arg in args],
         )
 
         async for response in self.StreamingDriverCall(request):
