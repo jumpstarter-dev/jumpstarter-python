@@ -16,7 +16,8 @@ def test_client_can(request):
 
         assert client2.recv().data == b"hello"
 
-        del client1, client2
+        client1.shutdown()
+        client2.shutdown()
 
 
 def test_client_can_iterator(request):
@@ -30,7 +31,8 @@ def test_client_can_iterator(request):
 
         assert [msg.data for msg in islice(client2, 3)] == [b"a", b"b", b"c"]
 
-        del client1, client2
+        client1.shutdown()
+        client2.shutdown()
 
 
 def test_client_can_filter(request):
@@ -46,7 +48,8 @@ def test_client_can_filter(request):
 
         assert client2.recv().data == b"b"
 
-        del client1, client2
+        client1.shutdown()
+        client2.shutdown()
 
 
 def test_client_can_notifier(request):
@@ -67,7 +70,8 @@ def test_client_can_notifier(request):
         sem.acquire()
         notifier.stop()
 
-        del client1, client2, notifier
+        client1.shutdown()
+        client2.shutdown()
 
 
 def test_client_can_redirect(request):
@@ -86,7 +90,8 @@ def test_client_can_redirect(request):
 
         notifier.stop()
 
-        del client1, client2, notifier
+        client1.shutdown()
+        client2.shutdown()
 
 
 def test_client_can_send_periodic_local(request):
