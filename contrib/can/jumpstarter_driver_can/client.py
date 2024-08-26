@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple
 
 import can
 from can.bus import _SelfRemovingCyclicTask
-from pydantic import validate_call
+from pydantic import ConfigDict, validate_call
 
 from jumpstarter.client import DriverClient
 
@@ -19,12 +19,14 @@ class CanClient(DriverClient, can.BusABC):
 
         super().__post_init__()
 
+    @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def _recv_internal(self, timeout: Optional[float]) -> Tuple[Optional[can.Message], bool]:
         result = CanResult.model_validate(self.call("_recv_internal", timeout))
         if result.msg:
             return can.Message(**CanMessage.model_validate(result.msg).__dict__), result.filtered
         return None, result.filtered
 
+    @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def send(self, msg: can.Message, timeout: Optional[float] = None) -> None:
         self.call("send", CanMessage.model_validate(msg, from_attributes=True), timeout)
 
