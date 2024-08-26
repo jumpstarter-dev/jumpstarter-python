@@ -1,3 +1,5 @@
+from threading import Semaphore
+
 import can
 from can.interfaces.udp_multicast import UdpMulticastBus
 
@@ -10,12 +12,16 @@ def test_client_can():
         serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client1,
         serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client2,
     ):
-        msg = can.Message(data=b"hello")
+        client1.send(can.Message(data=b"hello"))
 
-        client1.send(msg)
+        assert client2.recv().data == b"hello"
 
-        assert client2.recv().data == msg.data
 
+def test_client_can_filter():
+    with (
+        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client1,
+        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client2,
+    ):
         client2.set_filters([{"can_id": 0x1, "can_mask": 0x1, "extended": True}])
 
         client1.send(can.Message(arbitration_id=0x0, data=b"a"))
@@ -23,3 +29,22 @@ def test_client_can():
         client1.send(can.Message(arbitration_id=0x2, data=b"c"))
 
         assert client2.recv().data == b"b"
+
+
+def test_client_can_notifier():
+    with (
+        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client1,
+        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client2,
+    ):
+        sem = Semaphore(0)
+
+        def listener(msg):
+            assert msg.data == b"hello"
+            sem.release()
+
+        notifier = can.Notifier(client2, [listener])
+
+        client1.send(can.Message(data=b"hello"))
+
+        sem.acquire()
+        notifier.stop()
