@@ -14,14 +14,13 @@ from uuid import UUID, uuid4
 
 import aiohttp
 from anyio import to_thread
-from google.protobuf import json_format
 from grpc import StatusCode
 from pydantic import TypeAdapter
 from pydantic.dataclasses import dataclass
 
 from jumpstarter.common import Metadata
 from jumpstarter.common.resources import ClientStreamResource, PresignedRequestResource, Resource, ResourceMetadata
-from jumpstarter.common.serde import encode_value
+from jumpstarter.common.serde import decode_value, encode_value
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
@@ -73,7 +72,7 @@ class Driver(
         """
         method = await self.__lookup_drivercall(request.method, context, MARKER_DRIVERCALL)
 
-        args = [json_format.MessageToDict(arg) for arg in request.args]
+        args = [decode_value(arg) for arg in request.args]
 
         if iscoroutinefunction(method):
             result = await method(*args)
@@ -91,7 +90,7 @@ class Driver(
         """
         method = await self.__lookup_drivercall(request.method, context, MARKER_STREAMING_DRIVERCALL)
 
-        args = [json_format.MessageToDict(arg) for arg in request.args]
+        args = [decode_value(arg) for arg in request.args]
 
         if isasyncgenfunction(method):
             async for result in method(*args):
