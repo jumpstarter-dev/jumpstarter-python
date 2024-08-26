@@ -5,12 +5,12 @@ Base classes for drivers and driver clients
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
-from google.protobuf import json_format, struct_pb2
+from google.protobuf import json_format
 from grpc.aio import Channel
-from pydantic import BaseModel
 
 from jumpstarter.common import Metadata
 from jumpstarter.common.resources import ResourceMetadata
+from jumpstarter.common.serde import encode_value
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
@@ -24,13 +24,6 @@ from jumpstarter.streams import (
     forward_stream,
 )
 from jumpstarter.v1 import jumpstarter_pb2, jumpstarter_pb2_grpc, router_pb2_grpc
-
-
-def encode_value(v):
-    return json_format.ParseDict(
-        v.model_dump(mode="json") if isinstance(v, BaseModel) else v,
-        struct_pb2.Value(),
-    )
 
 
 @dataclass(kw_only=True)

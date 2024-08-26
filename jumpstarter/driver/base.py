@@ -14,13 +14,14 @@ from uuid import UUID, uuid4
 
 import aiohttp
 from anyio import to_thread
-from google.protobuf import json_format, struct_pb2
+from google.protobuf import json_format
 from grpc import StatusCode
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 from pydantic.dataclasses import dataclass
 
 from jumpstarter.common import Metadata
 from jumpstarter.common.resources import ClientStreamResource, PresignedRequestResource, Resource, ResourceMetadata
+from jumpstarter.common.serde import encode_value
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
@@ -34,13 +35,6 @@ from .decorators import (
     MARKER_STREAMCALL,
     MARKER_STREAMING_DRIVERCALL,
 )
-
-
-def encode_value(v):
-    return json_format.ParseDict(
-        v.model_dump(mode="json") if isinstance(v, BaseModel) else v,
-        struct_pb2.Value(),
-    )
 
 
 @dataclass(kw_only=True)
