@@ -1,3 +1,4 @@
+from itertools import islice
 from threading import Semaphore
 
 import can
@@ -15,6 +16,18 @@ def test_client_can():
         client1.send(can.Message(data=b"hello"))
 
         assert client2.recv().data == b"hello"
+
+
+def test_client_can_iterator():
+    with (
+        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client1,
+        serve(Can(channel=UdpMulticastBus.DEFAULT_GROUP_IPv6, interface="udp_multicast")) as client2,
+    ):
+        client1.send(can.Message(data=b"a"))
+        client1.send(can.Message(data=b"b"))
+        client1.send(can.Message(data=b"c"))
+
+        assert [msg.data for msg in islice(client2, 3)] == [b"a", b"b", b"c"]
 
 
 def test_client_can_filter():
