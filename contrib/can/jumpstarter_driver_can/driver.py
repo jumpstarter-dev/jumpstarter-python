@@ -2,6 +2,7 @@ from dataclasses import InitVar, field
 from typing import Optional
 
 import can
+from pydantic import validate_call
 from pydantic.dataclasses import dataclass
 
 from jumpstarter.driver import Driver, export
@@ -23,6 +24,7 @@ class Can(Driver):
         self.bus = can.Bus(channel=channel, interface=interface)
 
     @export
+    @validate_call(validate_return=True)
     def _recv_internal(self, timeout: Optional[float]) -> CanResult:
         msg, filtered = self.bus._recv_internal(timeout)
         if msg:
@@ -30,10 +32,12 @@ class Can(Driver):
         return CanResult(msg=None, filtered=filtered)
 
     @export
+    @validate_call(validate_return=True)
     def send(self, msg: CanMessage, timeout: float | None = None):
-        self.bus.send(can.Message(**CanMessage.model_validate(msg).__dict__), timeout)
+        self.bus.send(can.Message(**msg.__dict__), timeout)
 
     @export
+    @validate_call(validate_return=True)
     def set_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
         self.bus.set_filters(filters)
 
