@@ -16,3 +16,8 @@ class CanMessage(BaseModel):
     is_rx: bool
     bitrate_switch: bool
     error_state_indicator: bool
+
+
+class CanResult(BaseModel):
+    msg: CanMessage | None
+    filtered: bool
