@@ -1,5 +1,5 @@
 from dataclasses import InitVar, field
-from typing import Callable, Optional, Sequence, Union
+from typing import Callable, Optional, Sequence, Tuple, Union
 from uuid import UUID, uuid4
 
 import can
@@ -8,7 +8,7 @@ from pydantic.dataclasses import dataclass
 
 from jumpstarter.driver import Driver, export
 
-from .common import CanMessage, CanResult
+from .common import CanMessage
 
 
 @dataclass(kw_only=True, config=ConfigDict(arbitrary_types_allowed=True))
@@ -28,11 +28,11 @@ class Can(Driver):
 
     @export
     @validate_call(validate_return=True)
-    def _recv_internal(self, timeout: Optional[float]) -> CanResult:
+    def _recv_internal(self, timeout: Optional[float]) -> Tuple[Optional[CanMessage], bool]:
         msg, filtered = self.bus._recv_internal(timeout)
         if msg:
-            return CanResult(msg=CanMessage.model_validate(msg, from_attributes=True), filtered=filtered)
-        return CanResult(msg=None, filtered=filtered)
+            return CanMessage.model_validate(msg, from_attributes=True), filtered
+        return None, filtered
 
     @export
     @validate_call(validate_return=True)

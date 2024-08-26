@@ -10,7 +10,7 @@ from pydantic import ConfigDict, validate_call
 
 from jumpstarter.client import DriverClient
 
-from .common import CanMessage, CanResult
+from .common import CanMessage
 
 
 @dataclass(kw_only=True)
@@ -33,10 +33,10 @@ class CanClient(DriverClient, can.BusABC):
 
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def _recv_internal(self, timeout: Optional[float]) -> Tuple[Optional[can.Message], bool]:
-        result = CanResult.model_validate(self.call("_recv_internal", timeout))
-        if result.msg:
-            return can.Message(**CanMessage.model_validate(result.msg).__dict__), result.filtered
-        return None, result.filtered
+        msg, filtered = self.call("_recv_internal", timeout)
+        if msg:
+            return can.Message(**CanMessage.model_validate(msg).__dict__), filtered
+        return None, filtered
 
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def send(self, msg: can.Message, timeout: Optional[float] = None) -> None:
