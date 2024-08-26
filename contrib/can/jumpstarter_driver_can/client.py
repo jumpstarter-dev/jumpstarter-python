@@ -37,3 +37,8 @@ class CanClient(DriverClient, can.BusABC):
     @validate_call(validate_return=True)
     def flush_tx_buffer(self) -> None:
         self.call("flush_tx_buffer")
+
+    @validate_call(validate_return=True)
+    def shutdown(self) -> None:
+        self.call("shutdown")
+        super().shutdown()

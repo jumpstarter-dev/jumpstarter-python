@@ -16,6 +16,8 @@ def test_client_can(request):
 
         assert client2.recv().data == b"hello"
 
+        del client1, client2
+
 
 def test_client_can_iterator(request):
     with (
@@ -27,6 +29,8 @@ def test_client_can_iterator(request):
         client1.send(can.Message(data=b"c"))
 
         assert [msg.data for msg in islice(client2, 3)] == [b"a", b"b", b"c"]
+
+        del client1, client2
 
 
 def test_client_can_filter(request):
@@ -41,6 +45,8 @@ def test_client_can_filter(request):
         client1.send(can.Message(arbitration_id=0x2, data=b"c"))
 
         assert client2.recv().data == b"b"
+
+        del client1, client2
 
 
 def test_client_can_notifier(request):
@@ -61,6 +67,8 @@ def test_client_can_notifier(request):
         sem.acquire()
         notifier.stop()
 
+        del client1, client2, notifier
+
 
 def test_client_can_redirect(request):
     with (
@@ -77,3 +85,5 @@ def test_client_can_redirect(request):
         assert bus4.recv().data == b"hello"
 
         notifier.stop()
+
+        del client1, client2, notifier

@@ -42,5 +42,11 @@ class Can(Driver):
         self.bus._apply_filters(filters)
 
     @export
+    @validate_call(validate_return=True)
     def flush_tx_buffer(self) -> None:
         self.bus.flush_tx_buffer()
+
+    @export
+    @validate_call(validate_return=True)
+    def shutdown(self) -> None:
+        self.bus.shutdown()
