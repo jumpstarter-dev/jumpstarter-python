@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Callable, List, Optional, Sequence, Tuple, Union
+from uuid import UUID
 
 import can
 from can.bus import _SelfRemovingCyclicTask
@@ -10,7 +13,16 @@ from jumpstarter.client import DriverClient
 from .common import CanMessage, CanResult
 
 
-@dataclass
+@dataclass(kw_only=True)
+class RemoteCyclicSendTask(can.broadcastmanager.CyclicSendTaskABC):
+    client: CanClient
+    uuid: UUID
+
+    def stop(self) -> None:
+        self.client.call("_stop_task", self.uuid)
+
+
+@dataclass(kw_only=True)
 class CanClient(DriverClient, can.BusABC):
     def __post_init__(self):
         self._periodic_tasks: List[_SelfRemovingCyclicTask] = []
@@ -41,7 +53,11 @@ class CanClient(DriverClient, can.BusABC):
         if modifier_callback:
             return super()._send_periodic_internal(msgs, period, duration, modifier_callback)
         else:
-            return self.call("_send_periodic_internal", msgs, period, duration)
+            if isinstance(msgs, can.Message):
+                msgs = [CanMessage.model_validate(msgs, from_attributes=True)]
+            elif isinstance(msgs, Sequence):
+                msgs = [CanMessage.model_validate(msg, from_attributes=True) for msg in msgs]
+            return RemoteCyclicSendTask(client=self, uuid=self.call("_send_periodic_internal", msgs, period, duration))
 
     @validate_call(validate_return=True)
     def _apply_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:

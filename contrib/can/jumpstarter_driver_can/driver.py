@@ -1,8 +1,9 @@
 from dataclasses import InitVar, field
-from typing import Optional
+from typing import Callable, Optional, Sequence, Union
+from uuid import UUID, uuid4
 
 import can
-from pydantic import validate_call
+from pydantic import ConfigDict, validate_call
 from pydantic.dataclasses import dataclass
 
 from jumpstarter.driver import Driver, export
@@ -10,11 +11,13 @@ from jumpstarter.driver import Driver, export
 from .common import CanMessage, CanResult
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, config=ConfigDict(arbitrary_types_allowed=True))
 class Can(Driver):
     channel: InitVar[str | int | None]
     interface: InitVar[str | None]
     bus: can.Bus = field(init=False)
+
+    __tasks: dict[UUID, can.broadcastmanager.CyclicSendTaskABC] = field(init=False, default_factory=dict)
 
     @classmethod
     def client(cls) -> str:
@@ -35,6 +38,26 @@ class Can(Driver):
     @validate_call(validate_return=True)
     def send(self, msg: CanMessage, timeout: float | None = None):
         self.bus.send(can.Message(**msg.__dict__), timeout)
+
+    @export
+    @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
+    def _send_periodic_internal(
+        self,
+        msgs: Union[Sequence[CanMessage], CanMessage],
+        period: float,
+        duration: Optional[float] = None,
+        modifier_callback: Optional[Callable[[can.Message], None]] = None,
+    ) -> UUID:
+        assert modifier_callback is None
+        task = self.bus._send_periodic_internal(msgs, period, duration, modifier_callback)
+        uuid = uuid4()
+        self.__tasks[uuid] = task
+        return uuid
+
+    @export
+    @validate_call(validate_return=True)
+    def _stop_task(self, uuid: UUID):
+        self.__tasks.pop(uuid).stop()
 
     @export
     @validate_call(validate_return=True)
