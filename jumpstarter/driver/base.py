@@ -86,6 +86,8 @@ class Driver(
             )
         except NotImplementedError as e:
             await context.abort(StatusCode.UNIMPLEMENTED, str(e))
+        except ValueError as e:
+            await context.abort(StatusCode.INVALID_ARGUMENT, str(e))
 
     async def StreamingDriverCall(self, request, context):
         """
@@ -110,6 +112,8 @@ class Driver(
                     )
         except NotImplementedError as e:
             await context.abort(StatusCode.UNIMPLEMENTED, str(e))
+        except ValueError as e:
+            await context.abort(StatusCode.INVALID_ARGUMENT, str(e))
 
     @asynccontextmanager
     async def Stream(self, request, context):

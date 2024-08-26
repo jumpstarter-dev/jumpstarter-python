@@ -60,6 +60,8 @@ class AsyncDriverClient(
             match e.code():
                 case StatusCode.UNIMPLEMENTED:
                     raise NotImplementedError(e.details()) from None
+                case StatusCode.INVALID_ARGUMENT:
+                    raise ValueError(e.details()) from None
                 case _:
                     raise
 
@@ -81,6 +83,8 @@ class AsyncDriverClient(
             match e.code():
                 case StatusCode.UNIMPLEMENTED:
                     raise NotImplementedError(e.details()) from None
+                case StatusCode.INVALID_ARGUMENT:
+                    raise ValueError(e.details()) from None
                 case _:
                     raise
 
