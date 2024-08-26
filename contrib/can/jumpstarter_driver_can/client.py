@@ -29,9 +29,8 @@ class CanClient(DriverClient, can.BusABC):
         self.call("send", CanMessage.model_validate(msg, from_attributes=True), timeout)
 
     @validate_call(validate_return=True)
-    def set_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
-        self._filters = filters or None
-        self.call("set_filters", filters)
+    def _apply_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
+        self.call("_apply_filters", filters)
 
     @validate_call(validate_return=True)
     def flush_tx_buffer(self) -> None:

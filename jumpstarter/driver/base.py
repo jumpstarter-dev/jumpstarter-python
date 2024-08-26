@@ -70,40 +70,46 @@ class Driver(
         """
         :meta private:
         """
-        method = await self.__lookup_drivercall(request.method, context, MARKER_DRIVERCALL)
+        try:
+            method = await self.__lookup_drivercall(request.method, context, MARKER_DRIVERCALL)
 
-        args = [decode_value(arg) for arg in request.args]
+            args = [decode_value(arg) for arg in request.args]
 
-        if iscoroutinefunction(method):
-            result = await method(*args)
-        else:
-            result = await to_thread.run_sync(method, *args)
+            if iscoroutinefunction(method):
+                result = await method(*args)
+            else:
+                result = await to_thread.run_sync(method, *args)
 
-        return jumpstarter_pb2.DriverCallResponse(
-            uuid=str(uuid4()),
-            result=encode_value(result),
-        )
+            return jumpstarter_pb2.DriverCallResponse(
+                uuid=str(uuid4()),
+                result=encode_value(result),
+            )
+        except NotImplementedError as e:
+            await context.abort(StatusCode.UNIMPLEMENTED, str(e))
 
     async def StreamingDriverCall(self, request, context):
         """
         :meta private:
         """
-        method = await self.__lookup_drivercall(request.method, context, MARKER_STREAMING_DRIVERCALL)
+        try:
+            method = await self.__lookup_drivercall(request.method, context, MARKER_STREAMING_DRIVERCALL)
 
-        args = [decode_value(arg) for arg in request.args]
+            args = [decode_value(arg) for arg in request.args]
 
-        if isasyncgenfunction(method):
-            async for result in method(*args):
-                yield jumpstarter_pb2.StreamingDriverCallResponse(
-                    uuid=str(uuid4()),
-                    result=encode_value(result),
-                )
-        else:
-            for result in await to_thread.run_sync(method, *args):
-                yield jumpstarter_pb2.StreamingDriverCallResponse(
-                    uuid=str(uuid4()),
-                    result=encode_value(result),
-                )
+            if isasyncgenfunction(method):
+                async for result in method(*args):
+                    yield jumpstarter_pb2.StreamingDriverCallResponse(
+                        uuid=str(uuid4()),
+                        result=encode_value(result),
+                    )
+            else:
+                for result in await to_thread.run_sync(method, *args):
+                    yield jumpstarter_pb2.StreamingDriverCallResponse(
+                        uuid=str(uuid4()),
+                        result=encode_value(result),
+                    )
+        except NotImplementedError as e:
+            await context.abort(StatusCode.UNIMPLEMENTED, str(e))
 
     @asynccontextmanager
     async def Stream(self, request, context):

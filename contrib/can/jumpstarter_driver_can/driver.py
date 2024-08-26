@@ -38,8 +38,8 @@ class Can(Driver):
 
     @export
     @validate_call(validate_return=True)
-    def set_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
-        self.bus.set_filters(filters)
+    def _apply_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
+        self.bus._apply_filters(filters)
 
     @export
     def flush_tx_buffer(self) -> None:

@@ -5,7 +5,8 @@ Base classes for drivers and driver clients
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
-from grpc.aio import Channel
+from grpc import StatusCode
+from grpc.aio import AioRpcError, Channel
 
 from jumpstarter.common import Metadata
 from jumpstarter.common.resources import ResourceMetadata
@@ -53,7 +54,14 @@ class AsyncDriverClient(
             args=[encode_value(arg) for arg in args],
         )
 
-        response = await self.DriverCall(request)
+        try:
+            response = await self.DriverCall(request)
+        except AioRpcError as e:
+            match e.code():
+                case StatusCode.UNIMPLEMENTED:
+                    raise NotImplementedError(e.details()) from None
+                case _:
+                    raise
 
         return decode_value(response.result)
 
@@ -66,8 +74,15 @@ class AsyncDriverClient(
             args=[encode_value(arg) for arg in args],
         )
 
-        async for response in self.StreamingDriverCall(request):
-            yield decode_value(response.result)
+        try:
+            async for response in self.StreamingDriverCall(request):
+                yield decode_value(response.result)
+        except AioRpcError as e:
+            match e.code():
+                case StatusCode.UNIMPLEMENTED:
+                    raise NotImplementedError(e.details()) from None
+                case _:
+                    raise
 
     @asynccontextmanager
     async def stream_async(self, method):
