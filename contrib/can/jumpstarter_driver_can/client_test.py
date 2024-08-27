@@ -20,11 +20,12 @@ def test_client_can_send_recv(request):
         client2.shutdown()
 
 
-def test_client_can_channel_info(request):
+def test_client_can_property(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
     ):
         assert client1.channel_info == f"Virtual bus channel {request.node.name}"
+        assert client1.state == can.BusState.ACTIVE
 
         client1.shutdown()
 

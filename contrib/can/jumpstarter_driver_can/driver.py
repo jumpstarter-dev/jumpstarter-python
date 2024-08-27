@@ -61,6 +61,14 @@ class Can(Driver):
 
     @export
     @validate_call(validate_return=True)
+    def state(self, value: can.BusState | None = None) -> can.BusState | None:
+        if value:
+            self.bus.state = value
+        else:
+            return self.bus.state
+
+    @export
+    @validate_call(validate_return=True)
     def channel_info(self) -> str:
         return self.bus.channel_info
 

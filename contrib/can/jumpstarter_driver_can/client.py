@@ -32,8 +32,19 @@ class CanClient(DriverClient, can.BusABC):
 
         super().__post_init__()
 
+    @property
+    @validate_call(validate_return=True)
+    def state(self) -> can.BusState:
+        return self.call("state")
+
+    @state.setter
+    @validate_call(validate_return=True)
+    def state_setter(self, value: can.BusState) -> None:
+        self.call("state", value)
+
     @cached_property
-    def channel_info(self):
+    @validate_call(validate_return=True)
+    def channel_info(self) -> str:
         return self.call("channel_info")
 
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
