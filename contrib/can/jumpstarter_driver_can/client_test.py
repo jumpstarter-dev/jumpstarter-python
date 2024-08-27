@@ -11,29 +11,28 @@ def test_client_can_send_recv(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
+        client1,
+        client2,
     ):
         client1.send(can.Message(data=b"hello"))
 
         assert client2.recv().data == b"hello"
 
-        client1.shutdown()
-        client2.shutdown()
-
 
 def test_client_can_property(request):
     driver = Can(channel=request.node.name, interface="virtual")
-    with serve(driver) as client:
+    with serve(driver) as client, client:
         assert client.channel_info == driver.bus.channel_info
         assert client.state == driver.bus.state
         assert client.protocol == driver.bus.protocol
-
-        client.shutdown()
 
 
 def test_client_can_iterator(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
+        client1,
+        client2,
     ):
         client1.send(can.Message(data=b"a"))
         client1.send(can.Message(data=b"b"))
@@ -41,14 +40,13 @@ def test_client_can_iterator(request):
 
         assert [msg.data for msg in islice(client2, 3)] == [b"a", b"b", b"c"]
 
-        client1.shutdown()
-        client2.shutdown()
-
 
 def test_client_can_filter(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
+        client1,
+        client2,
     ):
         client2.set_filters([{"can_id": 0x1, "can_mask": 0x1, "extended": True}])
 
@@ -58,14 +56,13 @@ def test_client_can_filter(request):
 
         assert client2.recv().data == b"b"
 
-        client1.shutdown()
-        client2.shutdown()
-
 
 def test_client_can_notifier(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
+        client1,
+        client2,
     ):
         sem = Semaphore(0)
 
@@ -80,14 +77,13 @@ def test_client_can_notifier(request):
         sem.acquire()
         notifier.stop()
 
-        client1.shutdown()
-        client2.shutdown()
-
 
 def test_client_can_redirect(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
+        client1,
+        client2,
     ):
         bus3 = can.interface.Bus(request.node.name + "_inner", interface="virtual")
         bus4 = can.interface.Bus(request.node.name + "_inner", interface="virtual")
@@ -100,14 +96,13 @@ def test_client_can_redirect(request):
 
         notifier.stop()
 
-        client1.shutdown()
-        client2.shutdown()
-
 
 def test_client_can_send_periodic_local(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
+        client1,
+        client2,
     ):
 
         def modifier_callback(msg):
@@ -128,14 +123,13 @@ def test_client_can_send_periodic_local(request):
             (1, b"b"),
         ]
 
-        client1.shutdown()
-        client2.shutdown()
-
 
 def test_client_can_send_periodic_remote(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
+        client1,
+        client2,
     ):
         client1.send_periodic(
             msgs=[can.Message(arbitration_id=1, data=b"a"), can.Message(arbitration_id=1, data=b"b")],
@@ -150,6 +144,3 @@ def test_client_can_send_periodic_remote(request):
             (1, b"a"),
             (1, b"b"),
         ]
-
-        client1.shutdown()
-        client2.shutdown()
