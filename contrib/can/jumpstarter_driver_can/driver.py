@@ -69,6 +69,11 @@ class Can(Driver):
 
     @export
     @validate_call(validate_return=True)
+    def protocol(self) -> can.CanProtocol:
+        return self.bus.protocol
+
+    @export
+    @validate_call(validate_return=True)
     def channel_info(self) -> str:
         return self.bus.channel_info
 

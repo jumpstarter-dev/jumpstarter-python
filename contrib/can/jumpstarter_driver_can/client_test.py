@@ -21,13 +21,13 @@ def test_client_can_send_recv(request):
 
 
 def test_client_can_property(request):
-    with (
-        serve(Can(channel=request.node.name, interface="virtual")) as client1,
-    ):
-        assert client1.channel_info == f"Virtual bus channel {request.node.name}"
-        assert client1.state == can.BusState.ACTIVE
+    driver = Can(channel=request.node.name, interface="virtual")
+    with serve(driver) as client:
+        assert client.channel_info == driver.bus.channel_info
+        assert client.state == driver.bus.state
+        assert client.protocol == driver.bus.protocol
 
-        client1.shutdown()
+        client.shutdown()
 
 
 def test_client_can_iterator(request):

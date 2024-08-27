@@ -47,6 +47,11 @@ class CanClient(DriverClient, can.BusABC):
     def channel_info(self) -> str:
         return self.call("channel_info")
 
+    @cached_property
+    @validate_call(validate_return=True)
+    def protocol(self) -> can.CanProtocol:
+        return self.call("protocol")
+
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def _recv_internal(self, timeout: Optional[float]) -> Tuple[Optional[can.Message], bool]:
         msg, filtered = self.call("_recv_internal", timeout)
