@@ -61,6 +61,11 @@ class Can(Driver):
 
     @export
     @validate_call(validate_return=True)
+    def channel_info(self) -> str:
+        return self.bus.channel_info
+
+    @export
+    @validate_call(validate_return=True)
     def _apply_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
         self.bus._apply_filters(filters)
 

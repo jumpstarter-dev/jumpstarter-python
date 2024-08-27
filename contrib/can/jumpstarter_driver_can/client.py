@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 from uuid import UUID
 
@@ -30,6 +31,10 @@ class CanClient(DriverClient, can.BusABC):
         self._is_shutdown: bool = False
 
         super().__post_init__()
+
+    @cached_property
+    def channel_info(self):
+        return self.call("channel_info")
 
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def _recv_internal(self, timeout: Optional[float]) -> Tuple[Optional[can.Message], bool]:

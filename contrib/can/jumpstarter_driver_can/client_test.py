@@ -7,7 +7,7 @@ from jumpstarter.common.utils import serve
 from jumpstarter_driver_can.driver import Can
 
 
-def test_client_can(request):
+def test_client_can_send_recv(request):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
@@ -18,6 +18,15 @@ def test_client_can(request):
 
         client1.shutdown()
         client2.shutdown()
+
+
+def test_client_can_channel_info(request):
+    with (
+        serve(Can(channel=request.node.name, interface="virtual")) as client1,
+    ):
+        assert client1.channel_info == f"Virtual bus channel {request.node.name}"
+
+        client1.shutdown()
 
 
 def test_client_can_iterator(request):
