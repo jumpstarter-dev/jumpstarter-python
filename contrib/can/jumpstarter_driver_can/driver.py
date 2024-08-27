@@ -1,4 +1,4 @@
-from dataclasses import InitVar, field
+from dataclasses import field
 from typing import Callable, Optional, Sequence, Tuple, Union
 from uuid import UUID, uuid4
 
@@ -13,8 +13,8 @@ from .common import CanMessage
 
 @dataclass(kw_only=True, config=ConfigDict(arbitrary_types_allowed=True))
 class Can(Driver):
-    channel: InitVar[str | int | None]
-    interface: InitVar[str | None]
+    channel: str | int | None
+    interface: str | None
     bus: can.Bus = field(init=False)
 
     __tasks: dict[UUID, can.broadcastmanager.CyclicSendTaskABC] = field(init=False, default_factory=dict)
@@ -23,8 +23,9 @@ class Can(Driver):
     def client(cls) -> str:
         return "jumpstarter_driver_can.client.CanClient"
 
-    def __post_init__(self, channel, interface):
-        self.bus = can.Bus(channel=channel, interface=interface)
+    def __post_init__(self):
+        super().__post_init__()
+        self.bus = can.Bus(channel=self.channel, interface=self.interface)
 
     @export
     @validate_call(validate_return=True)
