@@ -19,6 +19,10 @@ def test_client_can_send_recv(request):
 
         assert client2.recv().data == b"hello"
 
+        with pytest.raises(NotImplementedError):
+            # not implemented on virtual bus
+            client1.flush_tx_buffer()
+
 
 def test_client_can_property(request):
     driver = Can(channel=request.node.name, interface="virtual")
