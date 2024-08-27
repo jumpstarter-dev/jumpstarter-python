@@ -2,6 +2,7 @@ from itertools import islice
 from threading import Semaphore
 
 import can
+import pytest
 
 from jumpstarter.common.utils import serve
 from jumpstarter_driver_can.driver import Can
@@ -25,6 +26,10 @@ def test_client_can_property(request):
         assert client.channel_info == driver.bus.channel_info
         assert client.state == driver.bus.state
         assert client.protocol == driver.bus.protocol
+
+        with pytest.raises(NotImplementedError):
+            # not implemented on virtual bus
+            client.state = can.BusState.PASSIVE
 
 
 def test_client_can_iterator(request):
@@ -97,7 +102,14 @@ def test_client_can_redirect(request):
         notifier.stop()
 
 
-def test_client_can_send_periodic_local(request):
+@pytest.mark.parametrize(
+    "msgs, expected",
+    [
+        ([can.Message(data=b"a"), can.Message(data=b"b")], [(1, b"a"), (1, b"b"), (1, b"a"), (1, b"b")]),
+        (can.Message(data=b"a"), [(1, b"a"), (1, b"a"), (1, b"a"), (1, b"a")]),
+    ],
+)
+def test_client_can_send_periodic_local(request, msgs, expected):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
@@ -109,22 +121,24 @@ def test_client_can_send_periodic_local(request):
             msg.arbitration_id = 1
 
         client1.send_periodic(
-            msgs=[can.Message(data=b"a"), can.Message(data=b"b")],
+            msgs=msgs,
             period=0.1,
             duration=1,
             store_task=True,
             modifier_callback=modifier_callback,
         )
 
-        assert [(msg.arbitration_id, msg.data) for msg in islice(client2, 4)] == [
-            (1, b"a"),
-            (1, b"b"),
-            (1, b"a"),
-            (1, b"b"),
-        ]
+        assert [(msg.arbitration_id, msg.data) for msg in islice(client2, 4)] == expected
 
 
-def test_client_can_send_periodic_remote(request):
+@pytest.mark.parametrize(
+    "msgs, expected",
+    [
+        ([can.Message(data=b"a"), can.Message(data=b"b")], [(0, b"a"), (0, b"b"), (0, b"a"), (0, b"b")]),
+        (can.Message(data=b"a"), [(0, b"a"), (0, b"a"), (0, b"a"), (0, b"a")]),
+    ],
+)
+def test_client_can_send_periodic_remote(request, msgs, expected):
     with (
         serve(Can(channel=request.node.name, interface="virtual")) as client1,
         serve(Can(channel=request.node.name, interface="virtual")) as client2,
@@ -132,15 +146,10 @@ def test_client_can_send_periodic_remote(request):
         client2,
     ):
         client1.send_periodic(
-            msgs=[can.Message(arbitration_id=1, data=b"a"), can.Message(arbitration_id=1, data=b"b")],
+            msgs=msgs,
             period=0.1,
             duration=1,
             store_task=True,
         )
 
-        assert [(msg.arbitration_id, msg.data) for msg in islice(client2, 4)] == [
-            (1, b"a"),
-            (1, b"b"),
-            (1, b"a"),
-            (1, b"b"),
-        ]
+        assert [(msg.arbitration_id, msg.data) for msg in islice(client2, 4)] == expected

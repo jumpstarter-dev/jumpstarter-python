@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable, List, Optional, Sequence, Tuple, Union
+from typing import Callable, List, Optional, Sequence, Tuple
 from uuid import UUID
 
 import can
@@ -39,7 +39,7 @@ class CanClient(DriverClient, can.BusABC):
 
     @state.setter
     @validate_call(validate_return=True)
-    def state_setter(self, value: can.BusState) -> None:
+    def state(self, value: can.BusState) -> None:
         self.call("state", value)
 
     @cached_property
@@ -66,7 +66,7 @@ class CanClient(DriverClient, can.BusABC):
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def _send_periodic_internal(
         self,
-        msgs: Union[Sequence[can.Message], can.Message],
+        msgs: Sequence[can.Message],
         period: float,
         duration: Optional[float] = None,
         modifier_callback: Optional[Callable[[can.Message], None]] = None,
@@ -74,10 +74,7 @@ class CanClient(DriverClient, can.BusABC):
         if modifier_callback:
             return super()._send_periodic_internal(msgs, period, duration, modifier_callback)
         else:
-            if isinstance(msgs, can.Message):
-                msgs = [CanMessage.model_validate(msgs, from_attributes=True)]
-            elif isinstance(msgs, Sequence):
-                msgs = [CanMessage.model_validate(msg, from_attributes=True) for msg in msgs]
+            msgs = [CanMessage.model_validate(msg, from_attributes=True) for msg in msgs]
             return RemoteCyclicSendTask(client=self, uuid=self.call("_send_periodic_internal", msgs, period, duration))
 
     @validate_call(validate_return=True)
