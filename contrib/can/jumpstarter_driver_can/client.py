@@ -77,7 +77,9 @@ class CanClient(DriverClient, can.BusABC):
             msgs = [CanMessage.model_validate(msg, from_attributes=True) for msg in msgs]
             return RemoteCyclicSendTask(client=self, uuid=self.call("_send_periodic_internal", msgs, period, duration))
 
-    @validate_call(validate_return=True)
+    # python-can bug
+    # https://docs.pydantic.dev/2.8/errors/usage_errors/#typed-dict-version
+    # @validate_call(validate_return=True)
     def _apply_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
         self.call("_apply_filters", filters)
 

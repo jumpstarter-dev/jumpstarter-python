@@ -78,7 +78,9 @@ class Can(Driver):
         return self.bus.channel_info
 
     @export
-    @validate_call(validate_return=True)
+    # python-can bug
+    # https://docs.pydantic.dev/2.8/errors/usage_errors/#typed-dict-version
+    # @validate_call(validate_return=True)
     def _apply_filters(self, filters: Optional[can.typechecking.CanFilters]) -> None:
         self.bus._apply_filters(filters)
 
