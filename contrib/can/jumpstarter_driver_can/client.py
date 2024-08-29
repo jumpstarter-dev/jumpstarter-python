@@ -61,7 +61,7 @@ class CanClient(DriverClient, can.BusABC):
 
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def send(self, msg: can.Message, timeout: Optional[float] = None) -> None:
-        self.call("send", CanMessage.model_validate(msg, from_attributes=True), timeout)
+        self.call("send", CanMessage.construct(msg), timeout)
 
     @validate_call(validate_return=True, config=ConfigDict(arbitrary_types_allowed=True))
     def _send_periodic_internal(
@@ -74,7 +74,7 @@ class CanClient(DriverClient, can.BusABC):
         if modifier_callback:
             return super()._send_periodic_internal(msgs, period, duration, modifier_callback)
         else:
-            msgs = [CanMessage.model_validate(msg, from_attributes=True) for msg in msgs]
+            msgs = [CanMessage.construct(msg) for msg in msgs]
             return RemoteCyclicSendTask(client=self, uuid=self.call("_send_periodic_internal", msgs, period, duration))
 
     # python-can bug

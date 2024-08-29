@@ -32,7 +32,7 @@ class Can(Driver):
     def _recv_internal(self, timeout: Optional[float]) -> Tuple[Optional[CanMessage], bool]:
         msg, filtered = self.bus._recv_internal(timeout)
         if msg:
-            return CanMessage.model_validate(msg, from_attributes=True), filtered
+            return CanMessage.construct(msg), filtered
         return None, filtered
 
     @export

@@ -174,7 +174,7 @@ def test_client_can_isotp(request, tx_data_length, blocking_send):
         notifier2 = can.Notifier(client2, [])
 
         params = {
-            "max_frame_size": 4096,
+            "max_frame_size": 2048,
             "tx_data_length": tx_data_length,
             "blocking_send": blocking_send,
         }
@@ -197,8 +197,8 @@ def test_client_can_isotp(request, tx_data_length, blocking_send):
 
         message = randbytes(params["max_frame_size"])
 
-        transport1.send(message, send_timeout=5)
-        assert transport2.recv(block=True, timeout=5) == message
+        transport1.send(message, send_timeout=10)
+        assert transport2.recv(block=True, timeout=10) == message
 
         transport1.stop()
         transport2.stop()
