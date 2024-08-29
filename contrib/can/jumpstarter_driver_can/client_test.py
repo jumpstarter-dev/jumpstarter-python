@@ -1,7 +1,9 @@
 from itertools import islice
+from random import randbytes
 from threading import Semaphore
 
 import can
+import isotp
 import pytest
 
 from jumpstarter.common.utils import serve
@@ -157,3 +159,49 @@ def test_client_can_send_periodic_remote(request, msgs, expected):
         )
 
         assert [(msg.arbitration_id, msg.data) for msg in islice(client2, 4)] == expected
+
+
+@pytest.mark.parametrize("tx_data_length", [8, 64])
+@pytest.mark.parametrize("blocking_send", [False, True])
+def test_client_can_isotp(request, tx_data_length, blocking_send):
+    with (
+        serve(Can(channel=request.node.name, interface="virtual")) as client1,
+        serve(Can(channel=request.node.name, interface="virtual")) as client2,
+        client1,
+        client2,
+    ):
+        notifier1 = can.Notifier(client1, [])
+        notifier2 = can.Notifier(client2, [])
+
+        params = {
+            "max_frame_size": 4096,
+            "tx_data_length": tx_data_length,
+            "blocking_send": blocking_send,
+        }
+
+        transport1 = isotp.NotifierBasedCanStack(
+            client1,
+            notifier1,
+            address=isotp.Address(rxid=1, txid=2),
+            params=params,
+        )
+        transport2 = isotp.NotifierBasedCanStack(
+            client2,
+            notifier2,
+            address=isotp.Address(rxid=2, txid=1),
+            params=params,
+        )
+
+        transport1.start()
+        transport2.start()
+
+        message = randbytes(params["max_frame_size"])
+
+        transport1.send(message, send_timeout=5)
+        assert transport2.recv(block=True, timeout=5) == message
+
+        transport1.stop()
+        transport2.stop()
+
+        notifier1.stop()
+        notifier2.stop()

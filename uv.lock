@@ -188,6 +188,15 @@ wheels = [
 ]
 
 [[package]]
+name = "can-isotp"
+version = "2.0.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/66/bb/ba7cbd7cee758754a959056e84d1adf8ae1672f5dcf89f040137f91ee5ea/can_isotp-2.0.6.tar.gz", hash = "sha256:6cab9fc7b6e3697ec5443e0e5b335e57204276d21f8531b711f41473a9ed25f3", size = 52257 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/27/22/e54054ef2b01456835b7fadb2c7c7021fd477e2f042518e3c2bf608b97b1/can_isotp-2.0.6-py3-none-any.whl", hash = "sha256:46d6d08d67e4c77bcf3d980c1296703df5907eafa29ebe7579e96ee117d22429", size = 34434 },
+]
+
+[[package]]
 name = "cattrs"
 version = "24.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -725,11 +734,19 @@ dependencies = [
     { name = "python-can" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "can-isotp" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "jumpstarter", editable = "." },
     { name = "python-can", specifier = ">=4.4.2" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "can-isotp", specifier = ">=2.0.6" }]
 
 [[package]]
 name = "jumpstarter-driver-dutlink"
