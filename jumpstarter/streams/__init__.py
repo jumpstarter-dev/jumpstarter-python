@@ -1,3 +1,4 @@
+from .aiohttp import AiohttpStreamReaderStream
 from .blocking import BlockingStream
 from .common import create_memory_stream, forward_stream
 from .metadata import MetadataStream, MetadataStreamAttributes
@@ -14,4 +15,5 @@ __all__ = [
     "ProgressStream",
     "MetadataStream",
     "MetadataStreamAttributes",
+    "AiohttpStreamReaderStream",
 ]

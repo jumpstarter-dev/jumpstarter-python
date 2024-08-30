@@ -20,13 +20,12 @@ from pydantic import BaseModel, TypeAdapter
 from pydantic.dataclasses import dataclass
 
 from jumpstarter.common import Metadata
-from jumpstarter.common.aiohttp import AiohttpStream
 from jumpstarter.common.resources import ClientStreamResource, PresignedRequestResource, Resource, ResourceMetadata
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
 )
-from jumpstarter.streams import MetadataStream, create_memory_stream
+from jumpstarter.streams import AiohttpStreamReaderStream, MetadataStream, create_memory_stream
 from jumpstarter.v1 import jumpstarter_pb2, jumpstarter_pb2_grpc, router_pb2_grpc
 
 from .decorators import (
@@ -175,7 +174,7 @@ class Driver(
                 del self.resources[uuid]
             case PresignedRequestResource(headers=headers, url=url, method=method):
                 async with aiohttp.request(method, url, headers=headers, raise_for_status=True) as resp:
-                    async with AiohttpStream(stream=resp.content) as stream:
+                    async with AiohttpStreamReaderStream(reader=resp.content) as stream:
                         yield stream
 
     async def __lookup_drivercall(self, name, context, marker):
