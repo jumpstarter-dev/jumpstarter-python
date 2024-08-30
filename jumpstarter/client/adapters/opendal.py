@@ -1,5 +1,6 @@
 from contextlib import suppress
 from dataclasses import dataclass
+from typing import Literal
 
 from anyio import BrokenResourceError, EndOfStream
 from anyio.abc import ObjectStream
@@ -42,15 +43,16 @@ class AsyncFileStream(ObjectStream[bytes]):
 class OpendalAdapter(ClientAdapter):
     operator: Operator
     path: str
+    mode: Literal["rb", "wb"] = "rb"
 
     async def __aenter__(self):
-        if self.operator.capability().presign_read:
+        if self.mode == "rb" and self.operator.capability().presign_read:
             presigned = await self.operator.to_async_operator().presign_read(self.path, expire_second=60)
             return PresignedRequestResource(
                 headers=presigned.headers, url=presigned.url, method=presigned.method
             ).model_dump(mode="json")
         else:
-            file = await self.operator.to_async_operator().open(self.path, "rb")
+            file = await self.operator.to_async_operator().open(self.path, self.mode)
 
             self.resource = self.client.resource_async(AsyncFileStream(file=file))
 
