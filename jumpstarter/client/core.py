@@ -16,7 +16,7 @@ from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
 )
-from jumpstarter.streams import ProgressStream, RouterStream, create_memory_stream, forward_stream
+from jumpstarter.streams import MetadataStream, ProgressStream, RouterStream, create_memory_stream, forward_stream
 from jumpstarter.v1 import jumpstarter_pb2, jumpstarter_pb2_grpc, router_pb2_grpc
 
 
@@ -69,7 +69,8 @@ class AsyncDriverClient(
         context = self.Stream(
             metadata={"request": DriverStreamRequest(uuid=self.uuid, method=method).model_dump_json()}.items()
         )
-        async with RouterStream(context=context) as stream:
+        metadata = dict(list(await context.initial_metadata()))
+        async with MetadataStream(stream=RouterStream(context=context), metadata=metadata) as stream:
             yield stream
 
     @asynccontextmanager

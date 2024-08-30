@@ -7,13 +7,13 @@ from anyio.abc import AnyByteStream, ObjectStream
 
 class MetadataStreamAttributes(TypedAttributeSet):
     # https://grpc.io/docs/guides/metadata/
-    metadata: dict[str, str | bytes] = typed_attribute()
+    metadata: dict[str, str] = typed_attribute()
 
 
 @dataclass(kw_only=True)
 class MetadataStream(ObjectStream[bytes]):
     stream: AnyByteStream
-    metadata: dict[str, str | bytes]
+    metadata: dict[str, str]
 
     async def send(self, data: bytes) -> None:
         await self.stream.send(data)
