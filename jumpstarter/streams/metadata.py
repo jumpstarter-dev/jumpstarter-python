@@ -11,18 +11,18 @@ class MetadataStreamAttributes(TypedAttributeSet):
     metadata: dict[str, str] = typed_attribute()
 
 
-@dataclass(kw_only=True)
+@dataclass(frozen=True, kw_only=True, slots=True)
 class MetadataStream(ObjectStream[bytes]):
     stream: AnyByteStream
     metadata: dict[str, str]
 
-    async def send(self, data: bytes) -> None:
-        await self.stream.send(data)
+    async def send(self, item: bytes):
+        await self.stream.send(item)
 
     async def receive(self) -> bytes:
         return await self.stream.receive()
 
-    async def send_eof(self) -> None:
+    async def send_eof(self):
         await self.stream.send_eof()
 
     async def aclose(self):
