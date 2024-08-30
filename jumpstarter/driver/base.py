@@ -5,7 +5,7 @@ Base classes for drivers and driver clients
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager
 from dataclasses import field
 from inspect import isasyncgenfunction, iscoroutinefunction
 from itertools import chain
@@ -13,7 +13,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import aiohttp
-from anyio import Event, TypedAttributeLookupError, to_thread
+from anyio import to_thread
 from google.protobuf import json_format, struct_pb2
 from grpc import StatusCode
 from pydantic import BaseModel, TypeAdapter
@@ -26,7 +26,7 @@ from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
 )
-from jumpstarter.streams import MetadataStreamAttributes, RouterStream, create_memory_stream, forward_stream
+from jumpstarter.streams import MetadataStream, create_memory_stream
 from jumpstarter.v1 import jumpstarter_pb2, jumpstarter_pb2_grpc, router_pb2_grpc
 
 from .decorators import (
@@ -113,6 +113,7 @@ class Driver(
                     result=encode_value(result),
                 )
 
+    @asynccontextmanager
     async def Stream(self, request, context):
         """
         :meta private:
@@ -122,16 +123,7 @@ class Driver(
                 method = await self.__lookup_drivercall(driver_method, context, MARKER_STREAMCALL)
 
                 async with method() as stream:
-                    metadata = []
-                    with suppress(TypedAttributeLookupError):
-                        metadata.extend(stream.extra(MetadataStreamAttributes.metadata).items())
-                    await context.send_initial_metadata(metadata)
-
-                    async with RouterStream(context=context) as s:
-                        async with forward_stream(s, stream):
-                            event = Event()
-                            context.add_done_callback(lambda _: event.set())
-                            await event.wait()
+                    yield stream
 
             case ResourceStreamRequest():
                 remote, resource = create_memory_stream()
@@ -140,18 +132,13 @@ class Driver(
 
                 self.resources[resource_uuid] = resource
 
-                await context.send_initial_metadata(
-                    ResourceMetadata.model_construct(resource=ClientStreamResource(uuid=resource_uuid))
-                    .model_dump(mode="json", round_trip=True)
-                    .items()
-                )
-
-                async with remote:
-                    async with RouterStream(context=context) as s:
-                        async with forward_stream(s, remote):
-                            event = Event()
-                            context.add_done_callback(lambda _: event.set())
-                            await event.wait()
+                async with MetadataStream(
+                    stream=remote,
+                    metadata=ResourceMetadata.model_construct(
+                        resource=ClientStreamResource(uuid=resource_uuid)
+                    ).model_dump(mode="json", round_trip=True),
+                ) as stream:
+                    yield stream
 
                 # del self.resources[resource_uuid]
                 # small resources might be fully buffered in memory

@@ -88,7 +88,6 @@ class AsyncDriverClient(
         metadata = dict(list(await context.initial_metadata()))
         async with MetadataStream(stream=RouterStream(context=context), metadata=metadata) as rstream:
             async with forward_stream(ProgressStream(stream=stream), rstream):
-                print("this is some resource", rstream.extra(MetadataStreamAttributes.metadata))
                 yield ResourceMetadata(**rstream.extra(MetadataStreamAttributes.metadata)).resource.model_dump(
                     mode="json"
                 )
