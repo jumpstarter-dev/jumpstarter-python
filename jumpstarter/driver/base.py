@@ -25,7 +25,6 @@ from jumpstarter.common.resources import ClientStreamResource, PresignedRequestR
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
-    StreamRequestMetadata,
 )
 from jumpstarter.streams import MetadataStreamAttributes, RouterStream, create_memory_stream, forward_stream
 from jumpstarter.v1 import jumpstarter_pb2, jumpstarter_pb2_grpc, router_pb2_grpc
@@ -114,14 +113,10 @@ class Driver(
                     result=encode_value(result),
                 )
 
-    async def Stream(self, _request_iterator, context):
+    async def Stream(self, request, context):
         """
         :meta private:
         """
-        metadata = dict(list(context.invocation_metadata()))
-
-        request = StreamRequestMetadata(**metadata).request
-
         match request:
             case DriverStreamRequest(method=driver_method):
                 method = await self.__lookup_drivercall(driver_method, context, MARKER_STREAMCALL)

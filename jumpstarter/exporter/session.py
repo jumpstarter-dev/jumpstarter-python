@@ -55,4 +55,4 @@ class Session(
 
         request = StreamRequestMetadata(**metadata).request
 
-        await self[request.uuid].Stream(_request_iterator, context)
+        await self[request.uuid].Stream(request, context)
