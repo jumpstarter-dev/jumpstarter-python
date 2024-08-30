@@ -13,6 +13,7 @@ from jumpstarter.common.resources import ResourceMetadata
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
+    StreamRequestMetadata,
 )
 from jumpstarter.streams import (
     MetadataStream,
@@ -71,7 +72,9 @@ class AsyncDriverClient(
     @asynccontextmanager
     async def stream_async(self, method):
         context = self.Stream(
-            metadata={"request": DriverStreamRequest(uuid=self.uuid, method=method).model_dump_json()}.items()
+            metadata=StreamRequestMetadata.model_construct(request=DriverStreamRequest(uuid=self.uuid, method=method))
+            .model_dump(mode="json", round_trip=True)
+            .items(),
         )
         metadata = dict(list(await context.initial_metadata()))
         async with MetadataStream(stream=RouterStream(context=context), metadata=metadata) as stream:
@@ -83,7 +86,9 @@ class AsyncDriverClient(
         stream,
     ):
         context = self.Stream(
-            metadata={"request": ResourceStreamRequest(uuid=self.uuid).model_dump_json()}.items(),
+            metadata=StreamRequestMetadata.model_construct(request=ResourceStreamRequest(uuid=self.uuid))
+            .model_dump(mode="json", round_trip=True)
+            .items(),
         )
         metadata = dict(list(await context.initial_metadata()))
         async with MetadataStream(stream=RouterStream(context=context), metadata=metadata) as rstream:
