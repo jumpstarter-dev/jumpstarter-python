@@ -140,9 +140,6 @@ class Driver(
                 ) as stream:
                     yield stream
 
-                # del self.resources[resource_uuid]
-                # small resources might be fully buffered in memory
-
     def report(self, *, parent=None, name=None):
         """
         Create DriverInstanceReport
@@ -173,10 +170,13 @@ class Driver(
         handle = TypeAdapter(Resource).validate_python(handle)
         match handle:
             case ClientStreamResource(uuid=uuid):
-                yield self.resources[uuid]
+                async with self.resources[uuid] as stream:
+                    yield stream
+                del self.resources[uuid]
             case PresignedRequestResource(headers=headers, url=url, method=method):
                 async with aiohttp.request(method, url, headers=headers, raise_for_status=True) as resp:
-                    yield AiohttpStream(stream=resp.content)
+                    async with AiohttpStream(stream=resp.content) as stream:
+                        yield stream
 
     async def __lookup_drivercall(self, name, context, marker):
         """Lookup drivercall by method name
