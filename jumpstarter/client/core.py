@@ -9,6 +9,7 @@ from google.protobuf import json_format, struct_pb2
 from grpc.aio import Channel
 
 from jumpstarter.common import Metadata
+from jumpstarter.common.resources import ResourceMetadata
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
@@ -87,4 +88,7 @@ class AsyncDriverClient(
         metadata = dict(list(await context.initial_metadata()))
         async with MetadataStream(stream=RouterStream(context=context), metadata=metadata) as rstream:
             async with forward_stream(ProgressStream(stream=stream), rstream):
-                yield rstream.extra(MetadataStreamAttributes.metadata)["resource"]
+                print("this is some resource", rstream.extra(MetadataStreamAttributes.metadata))
+                yield ResourceMetadata(**rstream.extra(MetadataStreamAttributes.metadata)).resource.model_dump(
+                    mode="json"
+                )

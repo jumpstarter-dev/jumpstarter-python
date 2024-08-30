@@ -16,16 +16,16 @@ import aiohttp
 from anyio import Event, TypedAttributeLookupError, to_thread
 from google.protobuf import json_format, struct_pb2
 from grpc import StatusCode
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 from pydantic.dataclasses import dataclass
 
 from jumpstarter.common import Metadata
 from jumpstarter.common.aiohttp import AiohttpStream
-from jumpstarter.common.resources import ClientStreamResource, PresignedRequestResource, Resource
+from jumpstarter.common.resources import ClientStreamResource, PresignedRequestResource, Resource, ResourceMetadata
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
-    StreamRequest,
+    StreamRequestMetadata,
 )
 from jumpstarter.streams import MetadataStreamAttributes, RouterStream, create_memory_stream, forward_stream
 from jumpstarter.v1 import jumpstarter_pb2, jumpstarter_pb2_grpc, router_pb2_grpc
@@ -118,9 +118,9 @@ class Driver(
         """
         :meta private:
         """
-        metadata = dict(context.invocation_metadata())
+        metadata = dict(list(context.invocation_metadata()))
 
-        request = StreamRequest.validate_json(metadata["request"], strict=True)
+        request = StreamRequestMetadata(**metadata).request
 
         match request:
             case DriverStreamRequest(method=driver_method):
@@ -146,7 +146,9 @@ class Driver(
                 self.resources[resource_uuid] = resource
 
                 await context.send_initial_metadata(
-                    [("resource", ClientStreamResource(uuid=resource_uuid).model_dump_json())]
+                    ResourceMetadata.model_construct(resource=ClientStreamResource(uuid=resource_uuid))
+                    .model_dump(mode="json", round_trip=True)
+                    .items()
                 )
 
                 async with remote:
@@ -186,7 +188,7 @@ class Driver(
 
     @asynccontextmanager
     async def resource(self, handle: str):
-        handle = Resource.validate_json(handle)
+        handle = TypeAdapter(Resource).validate_python(handle)
         match handle:
             case ClientStreamResource(uuid=uuid):
                 yield self.resources[uuid]
