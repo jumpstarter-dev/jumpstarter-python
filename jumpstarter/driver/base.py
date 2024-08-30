@@ -145,8 +145,7 @@ class Driver(
 
                 self.resources[resource_uuid] = resource
 
-                await resource.send(str(resource_uuid).encode("utf-8"))
-                await resource.send_eof()
+                await context.send_initial_metadata([("uuid", str(resource_uuid))])
 
                 async with remote:
                     async with RouterStream(context=context) as s:
