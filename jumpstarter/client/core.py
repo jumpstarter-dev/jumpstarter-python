@@ -4,13 +4,11 @@ Base classes for drivers and driver clients
 
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from uuid import UUID
 
 from google.protobuf import json_format, struct_pb2
 from grpc.aio import Channel
 
 from jumpstarter.common import Metadata
-from jumpstarter.common.resources import ClientStreamResource
 from jumpstarter.common.streams import (
     DriverStreamRequest,
     ResourceStreamRequest,
@@ -89,6 +87,4 @@ class AsyncDriverClient(
         metadata = dict(list(await context.initial_metadata()))
         async with MetadataStream(stream=RouterStream(context=context), metadata=metadata) as rstream:
             async with forward_stream(ProgressStream(stream=stream), rstream):
-                yield ClientStreamResource(
-                    uuid=UUID(rstream.extra(MetadataStreamAttributes.metadata)["uuid"])
-                ).model_dump(mode="json")
+                yield rstream.extra(MetadataStreamAttributes.metadata)["resource"]

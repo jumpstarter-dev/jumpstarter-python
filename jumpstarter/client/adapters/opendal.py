@@ -18,7 +18,7 @@ class OpendalAdapter(ClientAdapter):
             presigned = await self.operator.to_async_operator().presign_read(self.path, expire_second=60)
             return PresignedRequestResource(
                 headers=presigned.headers, url=presigned.url, method=presigned.method
-            ).model_dump(mode="json")
+            ).model_dump_json()
         else:
             file = await self.operator.to_async_operator().open(self.path, "rb")
 

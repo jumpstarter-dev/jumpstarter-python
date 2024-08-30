@@ -145,7 +145,9 @@ class Driver(
 
                 self.resources[resource_uuid] = resource
 
-                await context.send_initial_metadata([("uuid", str(resource_uuid))])
+                await context.send_initial_metadata(
+                    [("resource", ClientStreamResource(uuid=resource_uuid).model_dump_json())]
+                )
 
                 async with remote:
                     async with RouterStream(context=context) as s:
@@ -184,7 +186,7 @@ class Driver(
 
     @asynccontextmanager
     async def resource(self, handle: str):
-        handle = Resource.validate_python(handle)
+        handle = Resource.validate_json(handle)
         match handle:
             case ClientStreamResource(uuid=uuid):
                 yield self.resources[uuid]
