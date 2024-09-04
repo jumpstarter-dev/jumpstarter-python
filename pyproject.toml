@@ -3,9 +3,9 @@ name = "jumpstarter"
 version = "0.1.0"
 description = ""
 authors = [
-  { name = "Miguel Angel Ajo Pelayo", email = "majopela@redhat.com" },
-  { name = "Nick Cao", email = "ncao@redhat.com" },
-  { name = "Kirk Brauer", email = "kbrauer@hatci.com" },
+    { name = "Miguel Angel Ajo Pelayo", email = "majopela@redhat.com" },
+    { name = "Nick Cao", email = "ncao@redhat.com" },
+    { name = "Kirk Brauer", email = "kbrauer@hatci.com" },
 ]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -34,6 +34,12 @@ docs = [
     "esbonio>=0.16.4",
     "sphinx-autobuild>=2024.4.16",
 ]
+contrib = [
+    "jumpstarter-driver-dutlink",
+    "jumpstarter-driver-raspberrypi",
+    "jumpstarter-driver-ustreamer",
+    "jumpstarter-driver-can",
+]
 
 [project.scripts]
 jmp = "jumpstarter.__main__:main"
@@ -54,6 +60,12 @@ dev-dependencies = [
 [tool.uv.sources.jumpstarter-protocol]
 git = "https://github.com/jumpstarter-dev/jumpstarter-protocol.git"
 subdirectory = "python"
+
+[tool.uv.sources]
+jumpstarter-driver-dutlink = { workspace = true }
+jumpstarter-driver-raspberrypi = { workspace = true }
+jumpstarter-driver-ustreamer = { workspace = true }
+jumpstarter-driver-can = { workspace = true }
 
 [tool.uv.workspace]
 members = ["contrib/*"]
