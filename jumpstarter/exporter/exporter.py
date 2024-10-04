@@ -1,9 +1,9 @@
 import logging
 from collections.abc import Callable
-from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 
-from anyio import connect_unix, sleep
+from anyio import connect_unix, create_task_group, sleep
 from grpc.aio import Channel
 
 from jumpstarter.common import Metadata
@@ -52,7 +52,6 @@ class Exporter(AbstractAsyncContextManager, Metadata):
             )
         )
 
-    @asynccontextmanager
     async def __handle(self, endpoint, token):
         root_device = self.device_factory()
 
@@ -65,14 +64,14 @@ class Exporter(AbstractAsyncContextManager, Metadata):
         async with session.serve_unix_async() as path:
             async with await connect_unix(path) as stream:
                 async with connect_router_stream(endpoint, token, stream):
-                    yield
+                    pass
 
     async def serve(self):
         logger.info("Listening for incoming connection requests")
-        async for request in self.Listen(jumpstarter_pb2.ListenRequest()):
-            logger.info("Handling new connection request")
-            async with self.__handle(request.router_endpoint, request.router_token):
-                pass
+        async with create_task_group() as tg:
+            async for request in self.Listen(jumpstarter_pb2.ListenRequest()):
+                logger.info("Handling new connection request")
+                tg.start_soon(self.__handle, request.router_endpoint, request.router_token)
 
     async def serve_forever(self):
         backoff = 5
