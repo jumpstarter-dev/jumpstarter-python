@@ -8,4 +8,5 @@ plugins:
     out: .
 inputs:
   - git_repo: https://github.com/jumpstarter-dev/jumpstarter-protocol.git
+    branch: lease-status-to-exporter
     subdir: proto
