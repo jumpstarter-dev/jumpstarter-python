@@ -1,7 +1,6 @@
 import logging
 from contextlib import AbstractAsyncContextManager, AbstractContextManager, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
-from uuid import UUID
 
 import grpc
 from anyio import create_task_group, create_unix_listener, fail_after, sleep
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(kw_only=True)
-class LeaseRequest(AbstractContextManager, AbstractAsyncContextManager):
+class Lease(AbstractContextManager, AbstractAsyncContextManager):
     channel: Channel
     metadata_filter: MetadataFilter
     portal: BlockingPortal
@@ -49,7 +48,7 @@ class LeaseRequest(AbstractContextManager, AbstractAsyncContextManager):
                 # lease ready
                 if condition_true(result.conditions, "Ready"):
                     logger.info("Lease %s acquired", self.lease.name)
-                    return Lease(channel=self.channel, uuid=UUID(result.exporter_uuid), portal=self.portal)
+                    return self
                 # lease unsatisfiable
                 if condition_true(result.conditions, "Unsatisfiable"):
                     raise ValueError("lease unsatisfiable")
@@ -68,20 +67,14 @@ class LeaseRequest(AbstractContextManager, AbstractAsyncContextManager):
     def __exit__(self, exc_type, exc_value, traceback):
         return self.manager.__exit__(exc_type, exc_value, traceback)
 
-
-@dataclass(kw_only=True)
-class Lease:
-    channel: Channel
-    uuid: UUID
-    portal: BlockingPortal
-    stub: jumpstarter_pb2_grpc.ControllerServiceStub = field(init=False)
-
-    def __post_init__(self):
-        self.stub = jumpstarter_pb2_grpc.ControllerServiceStub(self.channel)
-
     async def handle_async(self, stream):
-        logger.info("Connecting to Exporter with uuid %s", self.uuid)
-        response = await self.stub.Dial(jumpstarter_pb2.DialRequest(uuid=str(self.uuid)))
+        lease = await self.stub.GetLease(jumpstarter_pb2.GetLeaseRequest(name=self.lease.name))
+        if not condition_true(lease.conditions, "Ready"):
+            raise ValueError("lease not ready")
+
+        logger.info("Connecting to Exporter with uuid %s", lease.exporter_uuid)
+
+        response = await self.stub.Dial(jumpstarter_pb2.DialRequest(uuid=lease.exporter_uuid))
         async with connect_router_stream(response.router_endpoint, response.router_token, stream):
             pass
 
