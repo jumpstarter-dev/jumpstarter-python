@@ -66,17 +66,18 @@ class Exporter(AbstractAsyncContextManager, Metadata):
                         yield
 
     async def serve(self):
-        logger.info("Listening for incoming connection requests")
-        async for request in self.Listen(jumpstarter_pb2.ListenRequest()):
-            logger.info("Handling new connection request")
-            async with self.__handle(request.router_endpoint, request.router_token):
-                pass
-
-    async def serve_forever(self):
         backoff = 5
         while True:
+            logger.info("Listening for incoming events")
             try:
-                await self.serve()
+                response = await self.Listen(jumpstarter_pb2.ListenRequest())
             except Exception as e:
-                logger.info("Exporter: connection interrupted, reconnecting after %d seconds: %s", backoff, e)
+                logger.info("Listening for incoming events failed, retrying after %d seconds: %s", backoff, e)
                 await sleep(backoff)
+                continue
+            logger.info("Handling new connection request")
+            try:
+                async with self.__handle(response.router_endpoint, response.router_token):
+                    pass
+            except Exception as e:
+                logger.info("Error in handling connection: %s", e)

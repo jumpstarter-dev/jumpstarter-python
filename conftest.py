@@ -82,7 +82,7 @@ class MockController(jumpstarter_pb2_grpc.ControllerServiceServicer):
 
     async def Listen(self, request, context):
         async for token in self.queue[1]:
-            yield jumpstarter_pb2.ListenResponse(router_endpoint=self.router_endpoint, router_token=token)
+            return jumpstarter_pb2.ListenResponse(router_endpoint=self.router_endpoint, router_token=token)
 
 
 @pytest.fixture
