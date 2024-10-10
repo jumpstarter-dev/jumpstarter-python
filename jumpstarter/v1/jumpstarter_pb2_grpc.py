@@ -26,7 +26,7 @@ class ControllerServiceStub(object):
                 request_serializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.UnregisterRequest.SerializeToString,
                 response_deserializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.UnregisterResponse.FromString,
                 _registered_method=True)
-        self.Listen = channel.unary_stream(
+        self.Listen = channel.unary_unary(
                 '/jumpstarter.v1.ControllerService/Listen',
                 request_serializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.ListenRequest.SerializeToString,
                 response_deserializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.ListenResponse.FromString,
@@ -36,7 +36,7 @@ class ControllerServiceStub(object):
                 request_serializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.DialRequest.SerializeToString,
                 response_deserializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.DialResponse.FromString,
                 _registered_method=True)
-        self.AuditStream = channel.stream_unary(
+        self.AuditStream = channel.unary_unary(
                 '/jumpstarter.v1.ControllerService/AuditStream',
                 request_serializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.AuditStreamRequest.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
@@ -111,7 +111,7 @@ class ControllerServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def AuditStream(self, request_iterator, context):
+    def AuditStream(self, request, context):
         """Audit events from the exporters
         audit events are used to track the exporter's activity
         """
@@ -176,7 +176,7 @@ def add_ControllerServiceServicer_to_server(servicer, server):
                     request_deserializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.UnregisterRequest.FromString,
                     response_serializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.UnregisterResponse.SerializeToString,
             ),
-            'Listen': grpc.unary_stream_rpc_method_handler(
+            'Listen': grpc.unary_unary_rpc_method_handler(
                     servicer.Listen,
                     request_deserializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.ListenRequest.FromString,
                     response_serializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.ListenResponse.SerializeToString,
@@ -186,7 +186,7 @@ def add_ControllerServiceServicer_to_server(servicer, server):
                     request_deserializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.DialRequest.FromString,
                     response_serializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.DialResponse.SerializeToString,
             ),
-            'AuditStream': grpc.stream_unary_rpc_method_handler(
+            'AuditStream': grpc.unary_unary_rpc_method_handler(
                     servicer.AuditStream,
                     request_deserializer=jumpstarter_dot_v1_dot_jumpstarter__pb2.AuditStreamRequest.FromString,
                     response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
@@ -298,7 +298,7 @@ class ControllerService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(
+        return grpc.experimental.unary_unary(
             request,
             target,
             '/jumpstarter.v1.ControllerService/Listen',
@@ -342,7 +342,7 @@ class ControllerService(object):
             _registered_method=True)
 
     @staticmethod
-    def AuditStream(request_iterator,
+    def AuditStream(request,
             target,
             options=(),
             channel_credentials=None,
@@ -352,8 +352,8 @@ class ControllerService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_unary(
-            request_iterator,
+        return grpc.experimental.unary_unary(
+            request,
             target,
             '/jumpstarter.v1.ControllerService/AuditStream',
             jumpstarter_dot_v1_dot_jumpstarter__pb2.AuditStreamRequest.SerializeToString,
